@@ -122,10 +122,7 @@ crashlytics-build.properties
 Assets/AssetStoreTools*
 
 # 素材フォルダ（購入・配布素材）
-Assets/ThirdParty/
-Assets/VRCSDK/
-Assets/Packages/
-Assets/VRChat Examples/
+Assets/
 
 # ただしmetaファイルは管理する
 !Assets/ThirdParty/**/*.meta
