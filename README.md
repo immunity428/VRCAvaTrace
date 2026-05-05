@@ -96,4 +96,4 @@ npm run build
 
 初回接続時に自動生成されます。
 
-`Assets/ThirdParty/`、`Assets/VRCSDK/` などの素材フォルダは自動的に除外されます。
+`Assets/` など素材フォルダは自動的に除外されます。
