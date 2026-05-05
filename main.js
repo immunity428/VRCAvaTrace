@@ -235,21 +235,34 @@ ipcMain.handle('check-git', async () => {
 
 ipcMain.handle('git-revert', async (_, { folderPath, hash, message }) => {
   try {
-    // 指定コミットに一発でリセット（checkout -- . より高速）
+    // ① ローカルを指定コミットの状態に戻す（ネットワーク不要・高速）
     await runGit(`reset --hard ${hash}`, folderPath);
 
-    // 追跡されていないファイルも削除
+    // ② 追跡されていない余分なファイルも削除
     await runGit('clean -fd', folderPath).catch(() => {});
 
-    // 「戻した」というコミットを作成してpush
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
+// 復元後にGitHubへ反映したい場合のforce push（別途呼び出し）
+ipcMain.handle('git-revert-push', async (_, { folderPath, message, hash }) => {
+  try {
+    // 復元内容をコミットとして記録
     const safeMsg = (message || hash).replace(/"/g, '\"');
     await runGit('add -A', folderPath).catch(() => {});
+    const status = await runGit('status --porcelain', folderPath).catch(() => '');
+    if (status) {
+      await runGit(`commit -m "revert: ${safeMsg} の状態に戻した"`, folderPath);
+    }
 
-    // reset --hard後は差分なしのためコミットは不要、そのままforce push
+    // force push
     try {
-      await runGitNet(`push origin HEAD:main --force`, folderPath);
+      await runGitNet('push origin HEAD:main --force', folderPath);
     } catch {
-      await runGitNet(`push origin HEAD:master --force`, folderPath);
+      await runGitNet('push origin HEAD:master --force', folderPath);
     }
 
     return { success: true };

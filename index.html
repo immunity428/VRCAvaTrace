@@ -1117,19 +1117,43 @@ function closeRevertDialog() {
 
 async function confirmRevert() {
   if (!pendingRevert || !config?.folder) return;
+  const commit = pendingRevert;
   closeRevertDialog();
-  showLoading('過去の状態に戻しています...');
+
+  // ① ローカル復元（ネットワーク不要・高速）
+  showLoading('ローカルを復元中...');
   const result = await ipc('git-revert', {
     folderPath: config.folder,
-    hash: pendingRevert.hash,
-    message: pendingRevert.message,
+    hash: commit.hash,
+    message: commit.message,
   });
   hideLoading();
-  if (result.success) {
-    toast('✅ 過去の状態に戻しました！', 'success');
+
+  if (!result.success) {
+    toast('復元エラー: ' + result.error, 'error');
+    return;
+  }
+
+  toast('✅ ローカルの復元が完了しました！', 'success');
+  await refreshAll();
+
+  // ② GitHubへの反映を確認
+  const pushToGithub = confirm('GitHubにも反映しますか？\n\n「OK」→ GitHubも同じ状態に更新\n「キャンセル」→ ローカルのみ復元（後からPushで反映できます）');
+  if (!pushToGithub) return;
+
+  showLoading('GitHubに反映中...');
+  const pushResult = await ipc('git-revert-push', {
+    folderPath: config.folder,
+    hash: commit.hash,
+    message: commit.message,
+  });
+  hideLoading();
+
+  if (pushResult.success) {
+    toast('✅ GitHubにも反映しました！', 'success');
     await refreshAll();
   } else {
-    toast('エラー: ' + result.error, 'error');
+    toast('GitHub反映エラー: ' + pushResult.error, 'error');
   }
 }
 
