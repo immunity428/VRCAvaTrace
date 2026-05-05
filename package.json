@@ -1,0 +1,29 @@
+{
+  "name": "vrc-avatar-git",
+  "version": "1.0.0",
+  "description": "VRChatアバター制作用Gitクライアント",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win --x64"
+  },
+  "dependencies": {
+    "isomorphic-git": "^1.25.6",
+    "@isomorphic-git/lightning-fs": "^4.6.0"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.vrc.avatar.git",
+    "productName": "VRC Avatar Git",
+    "win": {
+      "target": "nsis"
+    },
+    "files": [
+      "**/*",
+      "!node_modules/.cache"
+    ]
+  }
+}
