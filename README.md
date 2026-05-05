@@ -26,6 +26,13 @@ Gitの知識がなくてもUIだけで操作できます。
 # 依存関係インストール
 npm install
 
+#npm installで以下のようなエラーが出た場合
+npm : このシステムではスクリプトの実行が無効になっているため、ファイル C:
+\Program Files\nodejs\npm.ps1 を読み込むことができません。
+
+# PowerShellを開いて実行ポリシーを変更
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
 # アプリ起動
 npm start
 ```
