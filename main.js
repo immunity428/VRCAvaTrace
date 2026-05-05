@@ -61,13 +61,23 @@ ipcMain.handle('load-config', async () => {
 });
 
 // Git操作はシステムのgitコマンドを使用
-function runGit(args, cwd) {
+function runGit(args, cwd, timeoutMs = 300000) {
   return new Promise((resolve, reject) => {
-    exec(`git ${args}`, { cwd, encoding: 'utf-8' }, (err, stdout, stderr) => {
+    const proc = exec(`git ${args}`, { cwd, encoding: 'utf-8' }, (err, stdout, stderr) => {
       if (err) reject(new Error(stderr || err.message));
       else resolve(stdout.trim());
     });
+    const timer = setTimeout(() => {
+      proc.kill();
+      reject(new Error('タイムアウト: git ' + args));
+    }, timeoutMs);
+    proc.on('close', () => clearTimeout(timer));
   });
+}
+
+// push/pull/revertなどネットワーク通信は30分タイムアウト
+function runGitNet(args, cwd) {
+  return runGit(args, cwd, 1800000);
 }
 
 ipcMain.handle('git-init', async (_, { folderPath, repoUrl, token, userName, userEmail }) => {
@@ -191,26 +201,24 @@ ipcMain.handle('git-commit-push', async (_, { folderPath, message, token }) => {
     await runGit('add -A', folderPath);
 
     // コミット
-    await runGit(`commit -m "${message.replace(/"/g, '\\"')}"`, folderPath);
+    await runGit(`commit -m "${message.replace(/"/g, '\"')}"`, folderPath);
 
-    // プッシュ
-    await runGit('push -u origin main', folderPath);
+    // プッシュ（ネットワーク30分タイムアウト）
+    try {
+      await runGitNet('push -u origin main', folderPath);
+    } catch (e) {
+      await runGitNet('push -u origin master', folderPath);
+    }
 
     return { success: true };
   } catch (e) {
-    // mainブランチがなければmasterで試す
-    try {
-      await runGit('push -u origin master', folderPath);
-      return { success: true };
-    } catch (e2) {
-      return { success: false, error: e2.message };
-    }
+    return { success: false, error: e.message };
   }
 });
 
 ipcMain.handle('git-pull', async (_, { folderPath }) => {
   try {
-    await runGit('pull', folderPath);
+    await runGitNet('pull', folderPath);
     return { success: true };
   } catch (e) {
     return { success: false, error: e.message };
@@ -227,22 +235,26 @@ ipcMain.handle('check-git', async () => {
 
 ipcMain.handle('git-revert', async (_, { folderPath, hash, message }) => {
   try {
-    // 未保存の変更があればスタッシュ（退避）してから戻す
-    await runGit('stash', folderPath).catch(() => {});
+    // 未コミットの変更を強制リセット
+    await runGit('reset --hard HEAD', folderPath).catch(() => {});
+    await runGit('clean -fd', folderPath).catch(() => {});
 
-    // 指定コミットの状態にハードリセット
+    // 指定コミットの状態にチェックアウト
     await runGit(`checkout ${hash} -- .`, folderPath);
 
-    // 「元に戻した」というコミットを作成
-    const safeMsg = (message || hash).replace(/"/g, '\\"');
+    // 変更がある場合のみコミット
+    const safeMsg = (message || hash).replace(/"/g, '\"');
     await runGit('add -A', folderPath);
-    await runGit(`commit -m "⏪ 「${safeMsg}」の状態に戻した"`, folderPath);
+    const status = await runGit('status --porcelain', folderPath);
+    if (status) {
+      await runGit(`commit -m "revert: ${safeMsg} の状態に戻した"`, folderPath);
+    }
 
-    // プッシュ
+    // プッシュ（ネットワーク30分タイムアウト）
     try {
-      await runGit('push -u origin main', folderPath);
+      await runGitNet('push -u origin main', folderPath);
     } catch {
-      await runGit('push -u origin master', folderPath);
+      await runGitNet('push -u origin master', folderPath);
     }
 
     return { success: true };
