@@ -1,45 +1,29 @@
 # VRC Avatar Git 🎭
 
-VRChatアバター制作向けのシンプルなGitクライアントです。
+VRChatアバター制作向けのシンプルなGitバックアップツールです。
 
-Gitの知識がなくてもUIだけで操作できます。
+Gitの知識がなくてもボタンを押すだけでアバターのバックアップが取れます。
 
 ---
 
-## 必要なもの
+## 📦 ダウンロードして使う（一般ユーザー向け）
+
+### 必要なもの
 
 1. **Git for Windows**
    - https://git-scm.com/download/win
    - インストール時はデフォルト設定のままでOK
 
-2. **Node.js**（開発用）
-   - https://nodejs.org/
+2. **GitHubアカウント**
+   - https://github.com/
+   - 無料で作成できます
+   - **リポジトリは必ず「Private（非公開）」で作成してください**
 
-3. **GitHubアカウント**
-   - あらかじめ作成＋リポジトリ作成済みであること
+### インストール手順
 
----
-
-## セットアップ（開発環境）
-
-```bash
-# 依存関係インストール
-npm install
-
-#npm installで以下のようなエラーが出た場合
-npm : このシステムではスクリプトの実行が無効になっているため、ファイル C:
-\Program Files\nodejs\npm.ps1 を読み込むことができません。
-
-# PowerShellを開いて実行ポリシーを変更
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-
-# アプリ起動
-npm start
-```
-
----
-
-## アプリの使い方
+1. [Releases](../../releases) から最新の `.exe` をダウンロード
+2. インストーラーを実行してインストール
+3. アプリを起動する
 
 ### 初回設定
 
@@ -55,23 +39,61 @@ npm start
 ### 日常の使い方
 
 1. 「🎭 アバター管理」タブで変更ファイルを確認
-2. 変更メモ（コミットメッセージ）を入力
-3. 「📤 保存して送信」でGitHubに送信
+2. 変更メモを入力（例：「衣装マテリアルを調整」）
+3. 「📤 保存して送信」でバックアップ完了！
+
+### 過去の状態に戻したい場合
+
+> ⚠️ **復元前に必ずUnityを閉じてください**
+
+1. Unityを閉じる
+2. 「📋 変更履歴」タブを開く
+3. 戻したいバージョンの「⏪ この状態に戻す」を押す
+4. 完了後にUnityを開き直す
+
+詳しい使い方はアプリ内の「📖 使い方」タブを参照してください。
 
 ---
 
-## .gitignore について
+## 🛠️ 開発者向け
 
-初回接続時に自動生成されます。
+### 必要なもの
 
-`Assets/` などの素材フォルダは自動的に除外されます。
+1. **Git for Windows**
+   - https://git-scm.com/download/win
+   - インストール時はデフォルト設定のままでOK
 
----
+2. **Node.js**（開発用）
+   - https://nodejs.org/
 
-## ビルド（配布用 .exe 作成）
+3. **GitHubアカウント**
+   - あらかじめ作成＋リポジトリ作成済みであること
+
+### セットアップ
+
+```bash
+# 依存関係インストール
+npm install
+
+# npm installで以下のようなエラーが出た場合
+# npm : このシステムではスクリプトの実行が無効になっているため...
+# PowerShellを開いて実行ポリシーを変更
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+# アプリ起動
+npm start
+```
+
+### ビルド（配布用 .exe 作成）
 
 ```bash
 npm run build
 ```
 
 `dist/` フォルダに `.exe` インストーラーが生成されます。
+
+### .gitignore について
+
+初回接続時に自動生成されます。
+
+`Assets/ThirdParty/`、`Assets/VRCSDK/` などの素材フォルダは自動的に除外されます。
