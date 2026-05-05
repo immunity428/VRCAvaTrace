@@ -228,4 +228,30 @@ ipcMain.handle('check-git', async () => {
   });
 });
 
+ipcMain.handle('git-revert', async (_, { folderPath, hash, message }) => {
+  try {
+    // 未保存の変更があればスタッシュ（退避）してから戻す
+    await runGit('stash', folderPath).catch(() => {});
+
+    // 指定コミットの状態にハードリセット
+    await runGit(`checkout ${hash} -- .`, folderPath);
+
+    // 「元に戻した」というコミットを作成
+    const safeMsg = (message || hash).replace(/"/g, '\\"');
+    await runGit('add -A', folderPath);
+    await runGit(`commit -m "⏪ 「${safeMsg}」の状態に戻した"`, folderPath);
+
+    // プッシュ
+    try {
+      await runGit('push -u origin main', folderPath);
+    } catch {
+      await runGit('push -u origin master', folderPath);
+    }
+
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
 ipcMain.handle('open-external', (_, url) => shell.openExternal(url));
