@@ -174,12 +174,12 @@
   }
   .panel-body {
     flex: 1;
-    overflow-y: auto;
+    overflow: hidden;
     padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
   }
-  .panel-body::-webkit-scrollbar { width: 4px; }
-  .panel-body::-webkit-scrollbar-track { background: transparent; }
-  .panel-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
   /* ━━━ セットアップ画面 ━━━ */
   .setup-card {
@@ -291,11 +291,33 @@
     grid-template-columns: 1fr 300px;
     gap: 16px;
     height: 100%;
+    overflow: hidden;
   }
-  .main-left { display: flex; flex-direction: column; gap: 14px; overflow: hidden; }
-  .main-right { display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+  .main-left {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow: hidden;
+    min-height: 0;
+  }
+  .main-right {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow-y: auto;
+    min-height: 0;
+  }
   .main-right::-webkit-scrollbar { width: 4px; }
   .main-right::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* ファイルセクション：ヘッダー固定＋リストのみスクロール */
+  .files-section {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
 
   /* 変更ファイルセクション */
   .section-title {
@@ -322,10 +344,9 @@
     background: var(--bg2);
     border: 1px solid var(--border);
     border-radius: 10px;
-    overflow: hidden;
-    flex: 1;
     overflow-y: auto;
-    min-height: 100px;
+    flex: 1;
+    min-height: 0;
   }
   .files-list::-webkit-scrollbar { width: 4px; }
   .files-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
@@ -644,13 +665,13 @@
         <div class="panel-title">🎭 アバター管理</div>
         <div class="panel-sub" id="main-project-sub">プロジェクトを設定してください</div>
       </div>
-      <div class="panel-body">
+      <div class="panel-body" style="padding:16px 20px">
         <div class="warn-banner" id="no-project-warn">
           ⚠️ プロジェクトフォルダが設定されていません。まず「設定」から設定してください。
         </div>
         <div class="main-layout">
           <div class="main-left">
-            <div>
+            <div class="files-section">
               <div class="section-title">
                 変更されたファイル
                 <div style="display:flex;gap:8px;align-items:center">
@@ -704,7 +725,7 @@
         <div class="panel-title">📋 変更履歴</div>
         <div class="panel-sub">「この状態に戻す」で過去のバージョンに丸ごと戻せます</div>
       </div>
-      <div class="panel-body">
+      <div class="panel-body" style="overflow-y:auto">
         <div class="commit-list" id="full-commit-list">
           <div class="empty-state">
             <div class="empty-state-icon">📋</div>
@@ -720,7 +741,7 @@
         <div class="panel-title">⚙️ 設定</div>
         <div class="panel-sub">プロジェクトとGitHubの接続設定</div>
       </div>
-      <div class="panel-body">
+      <div class="panel-body" style="overflow-y:auto">
 
         <div class="git-error-card" id="git-error-card">
           <div style="font-size:14px;font-weight:700;color:var(--danger);margin-bottom:8px">⚠️ Gitがインストールされていません</div>
