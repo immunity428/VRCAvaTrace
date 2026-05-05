@@ -235,26 +235,21 @@ ipcMain.handle('check-git', async () => {
 
 ipcMain.handle('git-revert', async (_, { folderPath, hash, message }) => {
   try {
-    // 未コミットの変更を強制リセット
-    await runGit('reset --hard HEAD', folderPath).catch(() => {});
+    // 指定コミットに一発でリセット（checkout -- . より高速）
+    await runGit(`reset --hard ${hash}`, folderPath);
+
+    // 追跡されていないファイルも削除
     await runGit('clean -fd', folderPath).catch(() => {});
 
-    // 指定コミットの状態にチェックアウト
-    await runGit(`checkout ${hash} -- .`, folderPath);
-
-    // 変更がある場合のみコミット
+    // 「戻した」というコミットを作成してpush
     const safeMsg = (message || hash).replace(/"/g, '\"');
-    await runGit('add -A', folderPath);
-    const status = await runGit('status --porcelain', folderPath);
-    if (status) {
-      await runGit(`commit -m "revert: ${safeMsg} の状態に戻した"`, folderPath);
-    }
+    await runGit('add -A', folderPath).catch(() => {});
 
-    // プッシュ（ネットワーク30分タイムアウト）
+    // reset --hard後は差分なしのためコミットは不要、そのままforce push
     try {
-      await runGitNet('push -u origin main', folderPath);
+      await runGitNet(`push origin HEAD:main --force`, folderPath);
     } catch {
-      await runGitNet('push -u origin master', folderPath);
+      await runGitNet(`push origin HEAD:master --force`, folderPath);
     }
 
     return { success: true };
