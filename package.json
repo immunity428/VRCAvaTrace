@@ -2,6 +2,7 @@
   "name": "vrc-avatar-git",
   "version": "1.0.0",
   "description": "VRChatアバター制作用Gitクライアント",
+  "author": "VRCAvaTrace",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -19,7 +20,13 @@
     "appId": "com.vrc.avatar.git",
     "productName": "VRC Avatar Git",
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "signAndEditExecutable": false,
+      "sign": null
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
     },
     "files": [
       "**/*",
