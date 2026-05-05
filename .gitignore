@@ -13,7 +13,6 @@ package-lock.json
 dist/
 out/
 build/
-*.exe
 *.dmg
 *.AppImage
 *.deb
