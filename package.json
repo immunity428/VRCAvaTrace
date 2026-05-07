@@ -1,24 +1,36 @@
 {
   "name": "vrc-avatar-git",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "VRChatアバター制作用Gitクライアント",
   "author": "VRCAvaTrace",
-  "main": "main.js",
+  "type": "module",
+  "main": "out/main/main.js",
   "scripts": {
-    "start": "electron .",
-    "build": "electron-builder --win --x64"
+    "dev": "electron-vite dev",
+    "build": "electron-vite build && electron-builder --win --x64",
+    "preview": "electron-vite preview"
   },
   "dependencies": {
-    "isomorphic-git": "^1.25.6",
-    "@isomorphic-git/lightning-fs": "^4.6.0"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "autoprefixer": "^10.4.17",
     "electron": "^28.0.0",
-    "electron-builder": "^24.9.1"
+    "electron-builder": "^24.9.1",
+    "electron-vite": "^2.0.0",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.12"
   },
   "build": {
     "appId": "com.vrc.avatar.git",
     "productName": "VRC Avatar Git",
+    "files": ["out/**/*", "dist/**/*"],
     "win": {
       "target": "nsis",
       "signAndEditExecutable": false,
@@ -27,10 +39,6 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
-    },
-    "files": [
-      "**/*",
-      "!node_modules/.cache"
-    ]
+    }
   }
 }
