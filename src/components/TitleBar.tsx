@@ -8,7 +8,7 @@ export const TitleBar: FC = () => (
   >
     <div className="w-[18px] h-[18px] rounded-[4px] bg-gradient-to-br from-accent to-accent2 flex-shrink-0" />
     <span className="text-[12px] font-medium text-text2 tracking-wide flex-1">
-      VRC Avatar Git
+      AvaTrace
     </span>
     <div
       className="flex gap-1.5"

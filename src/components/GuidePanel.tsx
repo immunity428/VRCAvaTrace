@@ -59,7 +59,7 @@ export const GuidePanel: FC = () => (
         <Step num={4} color="red">「GitHubにも反映しますか？」が表示されるので選択する（下の説明を参照）</Step>
         <Step num={5} color="red">完了後にUnityを開き直す（自動でプロジェクト再構築される）</Step>
 
-        <div className="text-[13px] font-bold text-text1 mt-4 mb-3">復元の仕組みと選択肢</div>
+        <div className="text-[13px] font-bold text-text1 mt-4 mb-3">復元の仕組み</div>
         <div className="flex flex-col gap-2 text-[12px]">
           <div className="bg-bg3 border border-border rounded-lg p-3.5">
             <div className="font-bold text-text1 mb-1.5">💾 復元前に自動バックアップ</div>
@@ -69,23 +69,14 @@ export const GuidePanel: FC = () => (
             </div>
           </div>
           <div className="bg-bg3 border border-border rounded-lg p-3.5">
-            <div className="font-bold text-text1 mb-1.5">💻 ローカルのみ復元（キャンセル）</div>
+            <div className="font-bold text-text1 mb-1.5">☁️ PCとGitHub両方を同時に復元</div>
             <div className="text-text2 leading-relaxed">
-              自分のPCだけ過去の状態に戻します。GitHubはそのまま変わりません。<br />
-              <span className="text-accent text-[12px]">📌 こんな時に使う：「昨日の衣装に戻して試したい、気に入らなければ元に戻したい」。何度でもやり直せるので気軽に試せます。</span>
-            </div>
-          </div>
-          <div className="bg-bg3 border border-border rounded-lg p-3.5">
-            <div className="font-bold text-text1 mb-1.5">☁️ GitHubにも反映（OK）</div>
-            <div className="text-text2 leading-relaxed">
-              PCとGitHub両方を過去の状態に更新します。<br />
-              <span className="text-accent text-[12px]">📌 こんな時に使う：「別のPCでも同じ状態で作業したい」「このバージョンに完全に確定した」。</span><br />
-              <span className="text-yellow-400 text-[11px]">⚠️ GitHubの履歴が上書きされます。</span>
+              「復元する」を押すと、自分のPCとGitHubの両方が指定したバージョンの状態に更新されます。<br />
+              コンフリクト（履歴のズレ）が起きないようにGitHubの履歴も同時に上書きします。
             </div>
           </div>
           <div className="bg-[rgba(124,106,247,0.08)] border border-[rgba(124,106,247,0.2)] rounded-lg px-3.5 py-2.5 text-[11px] text-text2">
-            💡 <strong>迷ったらキャンセル（ローカルのみ）が安全です。</strong><br />
-            復元前の状態は自動バックアップ済みなので、変更履歴からいつでも戻せます。
+            💡 復元前の状態は自動バックアップ済みなので、変更履歴からいつでも元に戻せます。
           </div>
         </div>
       </Card>

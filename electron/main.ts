@@ -96,7 +96,7 @@ ipcMain.handle('git-init', async (_: Electron.IpcMainInvokeEvent, { folderPath, 
     }
 
     // ユーザー設定
-    await runGit(`config user.name "${userName || 'VRC Avatar User'}"`, folderPath)
+    await runGit(`config user.name "${userName || 'AvaTrace User'}"`, folderPath)
     await runGit(`config user.email "${userEmail || 'user@example.com'}"`, folderPath)
 
     // グローバルのデフォルトブランチをmainに設定

@@ -119,7 +119,7 @@ export const SetupPanel: FC<SetupPanelProps> = ({
                   className="text-accent hover:underline bg-none border-none cursor-pointer font-sans text-[11px]"
                   onClick={() =>
                     ipc.openExternal(
-                      'https://github.com/settings/tokens/new?scopes=repo&description=VRC+Avatar+Git'
+                      'https://github.com/settings/tokens/new?scopes=repo&description=AvaTrace'
                     )
                   }
                 >

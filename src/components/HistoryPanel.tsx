@@ -44,22 +44,9 @@ const RevertDialog: FC<RevertDialogProps> = ({ commit, onConfirm, onCancel }) =>
           復元後も「変更履歴」から復元前の状態に戻すことができます。
         </div>
 
-        {/* ユースケース説明 */}
-        <div className="flex flex-col gap-2 mb-4 text-[12px]">
-          <div className="bg-bg3 border border-border rounded-lg p-2.5">
-            <div className="font-bold text-text1 mb-1">💻 ローカルのみ復元（次の画面でキャンセル）</div>
-            <div className="text-text2 leading-relaxed">
-              自分のPCだけ過去の状態に戻します。<br />
-              <span className="text-accent">「昨日の衣装に戻して試してみたい、気に入らなければ元に戻したい」</span>という時に便利。GitHubはそのままなので何度でもやり直せます。
-            </div>
-          </div>
-          <div className="bg-bg3 border border-border rounded-lg p-2.5">
-            <div className="font-bold text-text1 mb-1">☁️ GitHubにも反映（次の画面でOK）</div>
-            <div className="text-text2 leading-relaxed">
-              PCとGitHub両方を更新します。<br />
-              <span className="text-accent">「別のPCでも同じ状態で作業したい」「このバージョンに完全に確定した」</span>という時に使います。
-            </div>
-          </div>
+        <div className="bg-bg3 border border-border rounded-lg p-3 mb-4 text-[12px] text-text2 leading-relaxed">
+          ✅ 復元前の状態は自動でバックアップされます。<br />
+          ✅ PCとGitHub両方が同じ状態に更新されます。
         </div>
 
         <div className="flex gap-2 justify-end">
@@ -97,22 +84,11 @@ export const HistoryPanel: FC<HistoryPanelProps> = ({
     // ① ローカル復元
     const err = await onRevertLocal(commit.hash, commit.message)
     if (err) { onToast('復元エラー: ' + err, 'error'); return }
-    onToast('✅ ローカルの復元が完了しました！', 'success')
 
-    // ② GitHubへの反映確認
-    const pushToGithub = window.confirm(
-      'GitHubにも反映しますか？\n\n' +
-      '「OK」→ GitHubも同じ状態に更新\n' +
-      '「キャンセル」→ ローカルのみ復元\n\n' +
-      '※ 復元前の状態は自動バックアップ済みです。\n' +
-      '　 変更履歴から「この状態に戻す」でいつでも戻せます。\n' +
-      '　 または「取得(Pull)」でGitHubの状態をローカルに反映できます。'
-    )
-    if (!pushToGithub) return
-
+    // ② GitHubに自動でforce push
     const pushErr = await onRevertPush(commit.hash, commit.message)
     if (pushErr) onToast('GitHub反映エラー: ' + pushErr, 'error')
-    else onToast('✅ GitHubにも反映しました！', 'success')
+    else onToast('✅ 復元完了！PCとGitHubを同じ状態にしました', 'success')
   }
 
   return (

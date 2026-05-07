@@ -1,7 +1,7 @@
 {
-  "name": "vrc-avatar-git",
+  "name": "avatrace",
   "version": "2.0.0",
-  "description": "VRChatアバター制作用Gitクライアント",
+  "description": "VRChatアバター制作向けバックアップツール",
   "author": "VRCAvaTrace",
   "type": "module",
   "main": "out/main/main.js",
@@ -28,8 +28,8 @@
     "vite": "^5.0.12"
   },
   "build": {
-    "appId": "com.vrc.avatar.git",
-    "productName": "VRC Avatar Git",
+    "appId": "com.avatrace.app",
+    "productName": "AvaTrace",
     "files": ["out/**/*", "dist/**/*"],
     "win": {
       "target": "nsis",
