@@ -61,6 +61,29 @@ export function useGit(config: AppConfig | null) {
     return result.error ?? '不明なエラー'
   }, [config, refreshAll])
 
+  const checkSync = useCallback(async () => {
+    if (!config) return null
+    return await ipc.gitCheckSync(config.folder)
+  }, [config])
+
+  const resolveLocal = useCallback(async (): Promise<string | null> => {
+    if (!config) return 'プロジェクトが設定されていません'
+    showLoading('ローカルでGitHubを上書き中...')
+    const result = await ipc.gitResolveLocal(config.folder)
+    hideLoading()
+    if (result.success) { await refreshAll(); return null }
+    return result.error ?? '不明なエラー'
+  }, [config, refreshAll])
+
+  const resolveRemote = useCallback(async (): Promise<string | null> => {
+    if (!config) return 'プロジェクトが設定されていません'
+    showLoading('GitHubでローカルを上書き中...')
+    const result = await ipc.gitResolveRemote(config.folder)
+    hideLoading()
+    if (result.success) { await refreshAll(); return null }
+    return result.error ?? '不明なエラー'
+  }, [config, refreshAll])
+
   const revertLocal = useCallback(
     async (hash: string, message: string): Promise<string | null> => {
       if (!config) return 'プロジェクトが設定されていません'
@@ -101,6 +124,9 @@ export function useGit(config: AppConfig | null) {
     refreshAll,
     commitAndPush,
     pull,
+    checkSync,
+    resolveLocal,
+    resolveRemote,
     revertLocal,
     revertPush,
   }

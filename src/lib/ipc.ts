@@ -7,6 +7,7 @@ import type {
   StatusResult,
   LogResult,
   GitCheckResult,
+  SyncCheckResult,
 } from '../types'
 
 export const ipc = {
@@ -48,6 +49,15 @@ export const ipc = {
 
   gitPull: (folderPath: string): Promise<GitResult> =>
     ipcRenderer.invoke('git-pull', { folderPath }),
+
+  gitCheckSync: (folderPath: string): Promise<SyncCheckResult> =>
+    ipcRenderer.invoke('git-check-sync', { folderPath }),
+
+  gitResolveLocal: (folderPath: string): Promise<GitResult> =>
+    ipcRenderer.invoke('git-resolve-local', { folderPath }),
+
+  gitResolveRemote: (folderPath: string): Promise<GitResult> =>
+    ipcRenderer.invoke('git-resolve-remote', { folderPath }),
 
   gitRevert: (params: {
     folderPath: string

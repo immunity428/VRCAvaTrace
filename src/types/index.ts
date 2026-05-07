@@ -39,3 +39,9 @@ export interface GitCheckResult {
   installed: boolean
   version?: string
 }
+
+export interface SyncCheckResult extends GitResult {
+  isDiverged: boolean
+  isAhead: boolean
+  isBehind: boolean
+}

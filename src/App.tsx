@@ -9,12 +9,14 @@ import { MainPanel } from './components/MainPanel'
 import { HistoryPanel } from './components/HistoryPanel'
 import { SetupPanel } from './components/SetupPanel'
 import { GuidePanel } from './components/GuidePanel'
+import { ConflictPanel } from './components/ConflictPanel'
 import { LoadingOverlay, ToastContainer } from './components/ui'
 
 export default function App() {
   const [activePanel, setActivePanel] = useState<PanelId>('main')
   const [config, setConfig] = useState<AppConfig | null>(null)
   const [gitInstalled, setGitInstalled] = useState(true)
+  const [showConflict, setShowConflict] = useState(false)
 
   const { toasts, toast } = useToast()
   const git = useGit(config)
@@ -77,7 +79,14 @@ export default function App() {
               commits={git.commits}
               onRefreshStatus={git.refreshStatus}
               onCommitPush={git.commitAndPush}
-              onPull={git.pull}
+              onPull={async () => {
+              const syncResult = await git.checkSync()
+              if (syncResult?.isDiverged) {
+                setShowConflict(true)
+                return null
+              }
+              return git.pull()
+            }}
               onNavigateSetup={() => setActivePanel('setup')}
               onToast={toast}
             />
@@ -103,6 +112,15 @@ export default function App() {
       </div>
 
       {git.loading && <LoadingOverlay text={git.loadingText} />}
+      {showConflict && config && (
+        <ConflictPanel
+          folderPath={config.folder}
+          onResolveLocal={git.resolveLocal}
+          onResolveRemote={git.resolveRemote}
+          onToast={toast}
+          onClose={() => setShowConflict(false)}
+        />
+      )}
       <ToastContainer toasts={toasts} />
     </div>
   )

@@ -89,59 +89,38 @@ ipcMain.handle('git-init', async (_: Electron.IpcMainInvokeEvent, { folderPath, 
   folderPath: string; repoUrl: string; token: string; userName: string; userEmail: string
 }) => {
   try {
+    const urlWithToken = repoUrl.replace('https://', `https://${token}@`)
     const isNewRepo = !existsSync(join(folderPath, '.git'))
 
+    // グローバル設定
+    await runGit(`config --global user.name "${userName || 'AvaTrace User'}"`, folderPath)
+    await runGit(`config --global user.email "${userEmail || 'user@example.com'}"`, folderPath)
+    await runGit('config --global core.autocrlf false', folderPath)
+
     if (isNewRepo) {
+      // GitHubの推奨フローそのまま
       await runGit('init', folderPath)
-    }
 
-    // ユーザー設定
-    await runGit(`config user.name "${userName || 'AvaTrace User'}"`, folderPath)
-    await runGit(`config user.email "${userEmail || 'user@example.com'}"`, folderPath)
+      // .gitignore生成
+      const gitignorePath = join(folderPath, '.gitignore')
+      if (!existsSync(gitignorePath)) {
+        writeFileSync(gitignorePath, GITIGNORE_TEMPLATE)
+      }
 
-    // グローバルのデフォルトブランチをmainに設定
-    await runGit('config --global init.defaultBranch main', folderPath).catch(() => {})
-
-    // .gitignore生成
-    const gitignorePath = join(folderPath, '.gitignore')
-    if (!existsSync(gitignorePath)) {
-      writeFileSync(gitignorePath, GITIGNORE_TEMPLATE)
-    }
-
-    // リモート設定
-    if (repoUrl) {
-      const urlWithToken = repoUrl.replace('https://', `https://${token}@`)
+      await runGit('add -A', folderPath)
+      await runGit('commit -m "first commit"', folderPath)
+      await runGit('branch -M main', folderPath)
+      await runGit(`remote add origin ${urlWithToken}`, folderPath)
+      await runGitNet('push -u origin main', folderPath)
+    } else {
+      // 既存リポジトリ
+      const gitignorePath = join(folderPath, '.gitignore')
+      if (!existsSync(gitignorePath)) {
+        writeFileSync(gitignorePath, GITIGNORE_TEMPLATE)
+      }
       try { await runGit('remote remove origin', folderPath) } catch {}
       await runGit(`remote add origin ${urlWithToken}`, folderPath)
-    }
-
-    // ブランチをmainに統一
-    // 現在のブランチ名を確認
-    const currentBranch = await runGit('rev-parse --abbrev-ref HEAD', folderPath).catch(() => '')
-
-    if (currentBranch === 'master') {
-      // masterをmainにリネーム
-      await runGit('branch -m master main', folderPath).catch(() => {})
-    }
-
-    // コミットがない場合はfirst commitを作成
-    const hasCommits = await runGit('rev-parse HEAD', folderPath).then(() => true).catch(() => false)
-    if (!hasCommits) {
-      await runGit('add -A', folderPath)
-      // ステージングされたファイルがある場合のみコミット
-      const staged = await runGit('diff --cached --name-only', folderPath).catch(() => '')
-      if (staged) {
-        await runGit(`commit -m "first commit"`, folderPath)
-      } else {
-        // 空コミットで初期化
-        await runGit(`commit --allow-empty -m "first commit"`, folderPath)
-      }
-      // mainブランチでpush
-      await runGitNet('push -u origin main', folderPath).catch(async () => {
-        await runGitNet('push -u origin master', folderPath).catch(() => {})
-      })
-    } else {
-      // 既存リポジトリの場合はブランチをmainに合わせてpushし直す
+      await runGit('branch -M main', folderPath).catch(() => {})
       await runGitNet('push -u origin main', folderPath).catch(() => {})
     }
 
@@ -207,26 +186,53 @@ ipcMain.handle('git-pull', async (_: Electron.IpcMainInvokeEvent, { folderPath }
   }
 })
 
+ipcMain.handle('git-check-sync', async (_: Electron.IpcMainInvokeEvent, { folderPath }: { folderPath: string }) => {
+  try {
+    await runGitNet('fetch origin', folderPath)
+    const status = await runGit('status -sb', folderPath)
+    const isDiverged = status.includes('diverged') || (status.includes('ahead') && status.includes('behind'))
+    const isAhead = status.includes('ahead') && !status.includes('behind')
+    const isBehind = status.includes('behind') && !status.includes('ahead')
+    return { success: true, isDiverged, isAhead, isBehind }
+  } catch (e: unknown) {
+    return { success: false, error: (e as Error).message, isDiverged: false, isAhead: false, isBehind: false }
+  }
+})
+
+ipcMain.handle('git-resolve-local', async (_: Electron.IpcMainInvokeEvent, { folderPath }: { folderPath: string }) => {
+  try {
+    await runGitNet('push origin main --force', folderPath)
+    return { success: true }
+  } catch (e: unknown) {
+    return { success: false, error: (e as Error).message }
+  }
+})
+
+ipcMain.handle('git-resolve-remote', async (_: Electron.IpcMainInvokeEvent, { folderPath }: { folderPath: string }) => {
+  try {
+    await runGit('reset --hard origin/main', folderPath)
+    return { success: true }
+  } catch (e: unknown) {
+    return { success: false, error: (e as Error).message }
+  }
+})
+
 ipcMain.handle('git-revert', async (_: Electron.IpcMainInvokeEvent, { folderPath, hash }: {
   folderPath: string; hash: string; message: string
 }) => {
   try {
-    // ① 復元前の状態を自動バックアップコミット
+    // 復元前の状態を自動バックアップ
     await runGit('add -A', folderPath).catch(() => {})
     const status = await runGit('status --porcelain', folderPath).catch(() => '')
     if (status) {
-      // 未コミットの変更があればバックアップとして保存
       const now = new Date().toLocaleString('ja-JP', {
         year: 'numeric', month: '2-digit', day: '2-digit',
         hour: '2-digit', minute: '2-digit',
       })
       await runGit(`commit -m "backup: 復元前の自動バックアップ (${now})"`, folderPath)
     }
-
-    // ② 指定コミットにリセット
     await runGit(`reset --hard ${hash}`, folderPath)
     await runGit('clean -fd', folderPath).catch(() => {})
-
     return { success: true }
   } catch (e: unknown) {
     return { success: false, error: (e as Error).message }
